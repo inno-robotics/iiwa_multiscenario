@@ -57,7 +57,10 @@ bool ElbowReaction::execute(ControlInterface& ci)
 
    // null space velocity
    Matrix<double,JOINT_NO,1> nsv = rs.externalTorque;
-   nsv.normalize();
+   iiwa14::substituteTorqueNoise(nsv);
+   double nsVal = nsv.norm();
+   if(nsVal > 0) nsv /= nsVal;
+   //nsv.normalize();
    nsv *= velocity;
 
    Matrix<double,CART_NO,1> cartV;
@@ -78,7 +81,7 @@ bool ElbowReaction::execute(ControlInterface& ci)
    Matrix3d sRot = (mGoal-mCurrent)*mCurrent.transpose(); // /rs.T;
    Vector3d vRot(sRot(2,1), sRot(0,2), sRot(1,0));
    double w = vRot.norm();
-   if(w > 1) vRot /= w;
+   //if(w > 1) vRot /= w;
    cartV(3) = vRot(0); cartV(4) = vRot(1); cartV(5) = vRot(2);
 
    //std::cout << cartV << std::endl;

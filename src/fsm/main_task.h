@@ -13,11 +13,14 @@ public:
      	: RobotStrategie("MainTask")           
 	, points(pts)
 	, nextPoint(0)
+	, shape(true)
     	, cyclic(cycle) { updateGoal(); }
 
    void reset() {}
    bool isFinish();
    bool execute(ControlInterface& ci);   
+
+   void saveShape(bool flag) { shape = flag; }
 
 private:
    void updateGoal();
@@ -26,17 +29,18 @@ private:
    
    int nextPoint;
    bool cyclic;
+   bool shape;
    
 }; // MainTask
 
 //
-//	InitialPosition
+//	MoveJoints
 //
 
-class InitialPosition : public RobotStrategie {
+class MoveJoints : public RobotStrategie {
 public:
-   InitialPosition(Eigen::Matrix<double,JOINT_NO,1>& q, double vMax=0.5)
-    	: RobotStrategie("InitialPosition")
+   MoveJoints(Eigen::Matrix<double,JOINT_NO,1>& q, double vMax=0.5)
+    	: RobotStrategie("MoveJoint")
    	, joints(q) 
     	, maxVelocity(vMax) {}
    
@@ -44,12 +48,14 @@ public:
    bool isFinish();
    bool execute(ControlInterface& ci);
 
+   void nextPosition(Eigen::Matrix<double,JOINT_NO,1>& q) { joints = q; }
+
 private:
    Eigen::Matrix<double,JOINT_NO,1>& joints;
       
    double maxVelocity;
    
-}; // InitialPosition
+}; // MoveJoints
 
 //
 //	FihishWork

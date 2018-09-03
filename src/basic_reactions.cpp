@@ -19,14 +19,14 @@
 #define PI 3.14159265358979323846
 #endif
 
-#define FREQ  20.0              // message frequency
+#define FREQ  25.0              // message frequency
 
 enum BasicReactions {BASIC_NO, BASIC_STOP, BASIC_TOUCH, BASIC_WAIT, BASIC_REDUNDANCY, BASIC_COMPLIANCE, BASIC_AVOIDANCE};
 
 int main(int argc, char **argv) 
 {
    // define current reaction
-   BasicReactions reaction = BASIC_COMPLIANCE;
+   BasicReactions reaction = BASIC_REDUNDANCY;
    
    // initialise ROS objects
    ros::init(argc, argv, "MultiscenarioControl");
@@ -36,7 +36,7 @@ int main(int argc, char **argv)
    // prepare initial position
    Eigen::Matrix<double,JOINT_NO,1> startConfig;
    startConfig << 0, 0.5, 0, -1.4, 0, 1.22, 0;
-   double startVelocity = 1;  // rad/s
+   double startVelocity = 0.5;  // rad/s
    
    // points of trajectory
    Eigen::MatrixXd points(4,CART_NO);
@@ -49,7 +49,7 @@ int main(int argc, char **argv)
    double cartVelocity = 40;   // mm/s
 
    // initial position
-   InitialPosition initial(startConfig, startVelocity);
+   MoveJoints initial(startConfig, startVelocity);
    // main robot task
    MainTask task(points, cyclic);
    // collision reaction
@@ -59,7 +59,7 @@ int main(int argc, char **argv)
    // touch reaction
    WaitReaction touchStop(0.4), touchRun(0.4), wait(2);
    // use kinematic redundancy
-   double nsMaxVelocity = 3;
+   double nsMaxVelocity = 2;
    ElbowReaction elbow(nsMaxVelocity);
    // compliance
    double complianceVelocity = 10;

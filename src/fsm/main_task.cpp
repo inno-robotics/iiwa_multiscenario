@@ -47,14 +47,18 @@ bool MainTask::execute(ControlInterface& ci)
    Matrix3d sRot = (mGoal-mCurrent)*mCurrent.transpose(); // /rs.T;
    Vector3d vRot(sRot(2,1), sRot(0,2), sRot(1,0));
    double w = vRot.norm();
-   if(w > 1) vRot /= w;
+   //if(w > 1) vRot /= w;
    cartV(3) = vRot(0); cartV(4) = vRot(1); cartV(5) = vRot(2);
      
    //std::cout << diff << std::endl;
 
    //std::cout << cartV << std::endl;
-   //Matrix<double,JOINT_NO,1> nsv = Matrix<double,JOINT_NO,1>::Zero();
-   Matrix<double,JOINT_NO,1> nsv = iiwa14::nsMaxFromLimits(rs.jointPosition);
+   Matrix<double,JOINT_NO,1> nsv;
+   if(shape) 
+      nsv = Matrix<double,JOINT_NO,1>::Zero();
+   else
+      nsv = iiwa14::nsMaxFromLimits(rs.jointPosition);
+
    return ci.setCartVel(cartV, nsv);
 }
 
@@ -79,18 +83,18 @@ void MainTask::updateGoal()
 }
 
 //
-//	InitialPosition
+//	MoveJoints
 //
 
-bool InitialPosition::isFinish()
+bool MoveJoints::isFinish()
 {
    //std::cout << rs.jointPosition << std::endl;
    return (joints - rs.jointPosition).squaredNorm() < JOINT_SQ_ERR;
 }
 
-bool InitialPosition::execute(ControlInterface& ci)
+bool MoveJoints::execute(ControlInterface& ci)
 {
-   double diffMax = rs.T * maxVelocity;
+   double diffMax = /*rs.T * */maxVelocity;
    Matrix<double,JOINT_NO,1> diff = (joints-rs.jointPosition);
    // speed limitation
    for(int i = 1; i < JOINT_NO; ++i) {
