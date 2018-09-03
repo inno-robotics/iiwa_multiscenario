@@ -110,6 +110,7 @@ bool CompliantReaction::execute(ControlInterface& ci)
 
    Matrix<double,JOINT_NO,1> dq = rs.externalTorque;
    // filter noise
+   /*
    for(int i = 0; i < JOINT_NO; ++i) {
       if(dq(i) > iiwa14::noise[i])
         { dq(i) -= iiwa14::noise[i]; }
@@ -118,6 +119,8 @@ bool CompliantReaction::execute(ControlInterface& ci)
       else
         { dq(i) = 0.0; }
    }
+   */
+   iiwa14::substituteTorqueNoise(dq);
    // all forces
    // find deflection
    double tau = dq.norm();
@@ -142,6 +145,8 @@ bool CompliantReaction::execute(ControlInterface& ci)
 */   
    // find position
    dq += rs.jointPosition;
+   
+   iiwa14::correctForLimits(dq);
 
    return ci.setJointPos(dq);
 }

@@ -26,7 +26,7 @@ enum BasicReactions {BASIC_NO, BASIC_STOP, BASIC_TOUCH, BASIC_WAIT, BASIC_REDUND
 int main(int argc, char **argv) 
 {
    // define current reaction
-   BasicReactions reaction = BASIC_REDUNDANCY;
+   BasicReactions reaction = BASIC_COMPLIANCE;
    
    // initialise ROS objects
    ros::init(argc, argv, "MultiscenarioControl");
@@ -62,7 +62,7 @@ int main(int argc, char **argv)
    double nsMaxVelocity = 3;
    ElbowReaction elbow(nsMaxVelocity);
    // compliance
-   double complianceVelocity = 1;
+   double complianceVelocity = 10;
    CompliantReaction compliance(complianceVelocity);
 
    // define transitions
@@ -95,7 +95,7 @@ int main(int argc, char **argv)
    case BASIC_COMPLIANCE:
       task.addTransition(EV_EE_COLLISION | EV_ELBOW_COLLISION | EV_OR, &compliance);
       compliance.addTransition(EV_COMPLETE, &task);
-      compliance.addTransition(EV_OUT_OF_LIMITS | EV_KEY, &exit);
+      //compliance.addTransition(EV_OUT_OF_LIMITS | EV_KEY, &exit);
       break;
    default:
       std::cout << "Undefined reaction " << reaction << std::endl;

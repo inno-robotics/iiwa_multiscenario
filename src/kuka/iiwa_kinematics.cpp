@@ -329,3 +329,25 @@ Matrix<double,POSE_QUATERN,1> iiwa14::cartesianState(Matrix<double,JOINT_NO,1>& 
 
    return res;
 }
+
+void iiwa14::correctForLimits(Matrix<double,JOINT_NO,1>& q)
+{
+   for(int i = 0; i < JOINT_NO; ++i) {
+      if(q(i) > iiwa14::qmax[i])
+         q(i) = iiwa14::qmax[i];
+      else if(q(i) < iiwa14::qmin[i])
+         q(i) = iiwa14::qmin[i];
+   }
+}
+
+void iiwa14::substituteTorqueNoise(Matrix<double,JOINT_NO,1>& t)
+{
+   for(int i = 0; i < JOINT_NO; ++i) {
+      if(t(i) > iiwa14::noise[i])
+         t(i) -= iiwa14::noise[i];
+      else if(t(i) < -iiwa14::noise[i])
+         t(i) += iiwa14::noise[i];
+      else
+         t(i) = 0;
+   }
+}

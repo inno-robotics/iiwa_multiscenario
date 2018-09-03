@@ -50,6 +50,10 @@ Eigen::Matrix<double,JOINT_NO+1,3> jointCoordinate(Eigen::Matrix<double,JOINT_NO
 
 Eigen::Matrix<double,POSE_QUATERN,1> cartesianState(Eigen::Matrix<double,JOINT_NO,1>& q);
 
+void correctForLimits(Eigen::Matrix<double,JOINT_NO,1>& q);
+
+void substituteTorqueNoise(Eigen::Matrix<double,JOINT_NO,1>& t);
+
 } // namespace iiwa14
 
 #endif // IIWA_KINEMATICS

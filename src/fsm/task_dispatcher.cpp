@@ -22,7 +22,7 @@ int TaskDispatcher::updateEvents()
 
    // check joint limits
    for(int i = 0; i < JOINT_NO; ++i) {
-       if(rs.jointPosition(i) >= iiwa14::qmax[i] || rs.jointPosition(i) <= iiwa14::qmin[i]) {
+       if(rs.jointPosition(i) > iiwa14::qmax[i] || rs.jointPosition(i) < iiwa14::qmin[i]) {
            //std::cout << rs.jointPosition << std::endl;
            events |= EV_OUT_OF_LIMITS;
        }
