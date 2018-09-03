@@ -26,7 +26,7 @@ enum BasicReactions {BASIC_NO, BASIC_STOP, BASIC_TOUCH, BASIC_WAIT, BASIC_REDUND
 int main(int argc, char **argv) 
 {
    // define current reaction
-   BasicReactions reaction = BASIC_REDUNDANCY;
+   BasicReactions reaction = BASIC_COMPLIANCE;
    
    // initialise ROS objects
    ros::init(argc, argv, "MultiscenarioControl");

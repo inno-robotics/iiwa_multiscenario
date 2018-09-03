@@ -113,45 +113,46 @@ bool CompliantReaction::execute(ControlInterface& ci)
 
    Matrix<double,JOINT_NO,1> dq = rs.externalTorque;
    // filter noise
-   /*
-   for(int i = 0; i < JOINT_NO; ++i) {
-      if(dq(i) > iiwa14::noise[i])
-        { dq(i) -= iiwa14::noise[i]; }
-      else if(dq(i) < -iiwa14::noise[i])
-        { dq(i) += iiwa14::noise[i]; }
-      else
-        { dq(i) = 0.0; }
-   }
-   */
    iiwa14::substituteTorqueNoise(dq);
+   
    // all forces
    // find deflection
    double tau = dq.norm();
    if(tau > 0) dq /= tau;
    dq *= (tau > THRESHOLD_COMP_TORQUE ? 1 : (tau / THRESHOLD_COMP_TORQUE)) * velocity * rs.T;
 
-/*
-   // maximum force
-   double max = 0;
-   int joint = -1;
-   for(int i = 0; i < JOINT_NO; ++i) {
-      if(fabs(dq(i)) > max) {
-         max = fabs(dq(i));
-	 joint = i;
-      }
-   }
-   if(joint > -1) {
-      dq.setZero();
-      dq(joint) = velocity * rs.T * max/THRESHOLD_COMP_TORQUE;
-   }
-   std::cout << dq << std::endl;
-*/   
    // find position
    dq += rs.jointPosition;
    
    iiwa14::correctForLimits(dq);
 
    return ci.setJointPos(dq);
+
+/*
+   while(true) {
+      int joint = -1;
+      double max = 0;
+      for(int i = 0; i < JOINT_NO; ++i) {
+         if(fabs(dq(i)) > fabs(max)) {
+	    max = dq(i);
+	    joint = i;
+	 }
+      }
+      if(joint > -1) {
+         max = (fabs(max) > THRESHOLD_COMP_TORQUE ? (max/fabs(max)) : (max / THRESHOLD_COMP_TORQUE)) * velocity * rs.T;
+	 rs.jointPosition(joint) += max;
+	 if(rs.jointPosition(joint) < iiwa14::qmax[joint] && rs.jointPosition(joint) > iiwa14::qmin[joint])
+	    break;
+	 else
+	    dq(joint) = 0;
+      }
+      else 
+         break;
+   }
+
+   iiwa14::correctForLimits(rs.jointPosition);
+   return ci.setJointPos(rs.jointPosition);
+*/
 }
 
 //
