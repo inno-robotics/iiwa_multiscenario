@@ -21,7 +21,7 @@
 
 #define FREQ  20.0              // message frequency
 
-enum BasicReactions {BASIC_NO, BASIC_STOP, BASIC_TOUCH, BASIC_WAIT, BASIC_REDUNDANCY, BASIC_COMPLIANCE};
+enum BasicReactions {BASIC_NO, BASIC_STOP, BASIC_TOUCH, BASIC_WAIT, BASIC_REDUNDANCY, BASIC_COMPLIANCE, BASIC_AVOIDANCE};
 
 int main(int argc, char **argv) 
 {
