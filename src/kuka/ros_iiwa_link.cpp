@@ -10,9 +10,10 @@
 
 using namespace Eigen;
 
-RosIiwaLink::RosIiwaLink(ros::NodeHandle& nh, std::ofstream *f)
+RosIiwaLink::RosIiwaLink(ros::NodeHandle& nh, std::ofstream *fJoints, std::ofstream *fForces)
          : ControlInterface()
-         , file(f)
+         , fileJoints(fJoints)
+	 , fileForces(fForces)
 	 , useSmartServo(false)
          , rs(RobotState::getInstance())
 {   
@@ -26,6 +27,8 @@ RosIiwaLink::RosIiwaLink(ros::NodeHandle& nh, std::ofstream *f)
    smartClient = nh.serviceClient<iiwa_msgs::ConfigureSmartServo>("/iiwa/configuration/configureSmartServo");
    // calculator
    sns = new SNSCalculator<JOINT_NO,CART_NO>(iiwa14::qmax, iiwa14::qmin, iiwa14::vmax);
+   // start time
+   begin = ros::Time::now();
    
 #ifdef EMULATE_MOVEMENT
    rs.jointPosition = Matrix<double,JOINT_NO,1>::Zero();
@@ -97,8 +100,15 @@ bool RosIiwaLink::setJointPos(Matrix<double,JOINT_NO,1>& jp)
    
    pubJointPosition.publish(cmdJointPosition);
    
-   if(file) {
-      *file << jp(0) << SEP << jp(1) << SEP << jp(2) << SEP << jp(3) << SEP << jp(4) << SEP << jp(5) << SEP << jp(6) << std::endl;
+   if(fileJoints) {
+      *fileJoints << (ros::Time::now() - begin) << SEP;
+      *fileJoints << jp(0) << SEP << jp(1) << SEP << jp(2) << SEP << jp(3) << SEP << jp(4) << SEP << jp(5) << SEP << jp(6) << std::endl;
+   }
+
+   if(fileForces) {
+      *fileForces << (ros::Time::now() - begin) << SEP;
+      *fileForces << rs.externalTorque(0) << SEP << rs.externalTorque(1) << SEP << rs.externalTorque(2) << SEP << rs.externalTorque(3) << SEP 
+      << rs.externalTorque(4) << SEP << rs.externalTorque(5) << SEP << rs.externalTorque(6) << std::endl;
    }
 
 #ifdef EMULATE_MOVEMENT
@@ -122,12 +132,19 @@ bool RosIiwaLink::setCartVel(Matrix<double,CART_NO,1> &cv, Matrix<double,JOINT_N
    //diff *= rs.T;
    diff += rs.jointPosition;
    setJointPos(diff);
-   
-   if(file) {
-      *file << diff(0) << SEP << diff(1) << SEP << diff(2) << SEP << diff(3) << SEP << diff(4) 
+/*   
+   if(fileJoints) {
+      *fileJoints << (ros::Time::now() - begin) << SEP;
+      *fileJoints << diff(0) << SEP << diff(1) << SEP << diff(2) << SEP << diff(3) << SEP << diff(4) 
                        << SEP << diff(5) << SEP << diff(6) << std::endl;
    }
    
+   if(fileForces) {
+      *fileForces << (ros::Time::now() - begin) << SEP;
+      *fileForces << rs.externalTorque(0) << SEP << rs.externalTorque(1) << SEP << rs.externalTorque(2) << SEP << rs.externalTorque(3) << SEP 
+      << rs.externalTorque(4) << SEP << rs.externalTorque(5) << SEP << rs.externalTorque(6) << std::endl;
+   }
+*/
 #ifdef EMULATE_MOVEMENT
    rs.jointPosition = diff;
    rs.cartesianPosition = iiwa14::cartesianState(diff);

@@ -15,7 +15,7 @@
 
 class RosIiwaLink : public ControlInterface {
 public:
-   RosIiwaLink(ros::NodeHandle& nh, std::ofstream *f = 0);
+   RosIiwaLink(ros::NodeHandle& nh, std::ofstream *fJoints = 0, std::ofstream *fForces = 0);
    ~RosIiwaLink();
    
    bool setJointPos(Eigen::Matrix<double,JOINT_NO,1>& jp);
@@ -39,6 +39,7 @@ private:
    ros::Subscriber subCartesPosition;
    ros::Publisher  pubJointPosition;   
    //ros::Publisher  pubJointVelocity;
+   ros::Time begin;
    
    iiwa_msgs::JointPosition cmdJointPosition;
 
@@ -47,7 +48,7 @@ private:
    
    SNSCalculator<JOINT_NO,CART_NO>* sns;
    ros::AsyncSpinner *spinner;
-   std::ofstream *file;
+   std::ofstream *fileJoints, *fileForces;
 
    bool useSmartServo;
    

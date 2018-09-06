@@ -19,6 +19,10 @@
 #define PI 3.14159265358979323846
 #endif
 
+// save to file
+//#define LOG_JOINT "joints.csv"
+//#define LOG_TORQUE "torque.csv"
+
 #define FREQ  25.0              // message frequency
 
 enum BasicReactions {BASIC_NO, BASIC_STOP, BASIC_TOUCH, BASIC_WAIT, BASIC_REDUNDANCY, BASIC_COMPLIANCE, BASIC_AVOIDANCE};
@@ -105,16 +109,22 @@ int main(int argc, char **argv)
    task.addTransition(EV_OUT_OF_LIMITS | EV_KEY, &exit);
 
    // file for log
-   std::ofstream* file = 0;
+   std::ofstream* logJoints = 0, *logTorques = 0;
    // uncomment for logging joint angles
-/* 
-   std::ofstream log;
-   log.open("log.csv");
-   file = &log;
-*/
+#ifdef LOG_JOINT 
+   std::ofstream fileJoints;
+   fileJoints.open(LOG_JOINT);
+   logJoints = &fileJoints;
+#endif
+
+#ifdef LOG_TORQUE
+   std::ofstream fileTorques;
+   fileTorques.open(LOG_TORQUE);
+   logTorques = &fileTorques;
+#endif
 
    // interaction with ROS
-   RosIiwaLink robot(nh, file);
+   RosIiwaLink robot(nh, logJoints, logTorques);
    // using smart servo
    // double servoStiffness = 100;
    //robot.configureSmartServo(servoStiffness);
@@ -144,7 +154,9 @@ int main(int argc, char **argv)
 
    // stoping
    ROS_INFO("Bye!");
-   if(file) file->close();
+
+   if(logJoints) logJoints->close();
+   if(logTorques) logTorques->close();
 
    return 0;
 }
