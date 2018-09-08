@@ -28,6 +28,7 @@ struct RobotState {
    double T;
    double cartVMax;
    int events;
+   int collision;
    bool isRobotConnected;
    bool isContinue;
 

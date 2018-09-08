@@ -20,6 +20,7 @@ void CollisionDetector::analyze(RobotState& rs, CollisionDetectionResult &res)
 #ifdef EMULATE_MOVEMENT
    checkVirtualObstacles(rs);
 #endif // EMULATE_MOVEMENT
+   rs.collision = 0;
 
    simple_last_torque(rs, res);
 }
@@ -39,6 +40,7 @@ void CollisionDetector::simple_maximum_torque(RobotState& rs, CollisionDetection
 
    res.jointNo = joint;
    res.found = (joint != -1);
+   if(res.found) rs.collision |= (1 << joint);
 }
 
 void CollisionDetector::simple_last_torque(RobotState& rs, CollisionDetectionResult &res)
@@ -50,6 +52,7 @@ void CollisionDetector::simple_last_torque(RobotState& rs, CollisionDetectionRes
    
    res.jointNo = joint;
    res.found = (joint != -1);
+   if(res.found) rs.collision |= (1 << joint);
 }
 
 void CollisionDetector::checkVirtualObstacles(RobotState& rs)

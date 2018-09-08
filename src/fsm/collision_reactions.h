@@ -151,6 +151,8 @@ public:
 private:
    void addCurrentPoint();
 
+   Eigen::Matrix<double,JOINT_NO+1,3> joints;
+
    std::vector<Eigen::Vector3d> obstacles;
    Eigen::Vector3d lastDirection;
 

@@ -176,8 +176,10 @@ bool CompliantReaction::execute(ControlInterface& ci)
 
 bool EndEffectorReaction::execute(ControlInterface& ci)
 {
+   // update robot config info
+   joints = iiwa14::jointCoordinate(rs.jointPosition);
    // check collision
-   if((rs.events & EV_EE_COLLISION) ) addCurrentPoint();
+   if(rs.collision) addCurrentPoint();
    // current point
    Vector3d point(rs.cartesianPosition(0), rs.cartesianPosition(1), rs.cartesianPosition(2));
 
@@ -193,15 +195,15 @@ bool EndEffectorReaction::execute(ControlInterface& ci)
       repLen = (repLen > repulsiveDistance) ? 0 : (repulsiveDistance-repLen);
       rep.normalize();
       // apply repulsive
-      std::cout << i << " "  << stiffness*repLen << std::endl;
+      //std::cout << i << " "  << stiffness*repLen << std::endl;
       attr += stiffness*repLen*rep;
    }
-      std::cout << "len " << attr.norm() << std::endl;
+      //std::cout << "len " << attr.norm() << std::endl;
 
    double attrLen = attr.norm();
    // opposite direction
    if(lastDirection.dot(attr) < -0.9*attrLen) {
-      std::cout << "Change direction" << std::endl;
+      //std::cout << "Change direction" << std::endl;
       Vector3d dir = point-Vector3d(rs.goalCartesianPos(0),rs.goalCartesianPos(1),rs.goalCartesianPos(2));
       // set direction for avoidance
       Vector3d norm = Vector3d::Zero();
@@ -227,7 +229,7 @@ bool EndEffectorReaction::execute(ControlInterface& ci)
    attr.normalize();
    lastDirection = attr;
    attr *= rs.cartVMax;
-   std::cout << attr << std::endl;
+   //std::cout << attr << std::endl;
 
    Matrix<double,CART_NO,1> cartV;
    cartV.setZero();
@@ -254,7 +256,15 @@ void EndEffectorReaction::reset()
 
 void EndEffectorReaction::addCurrentPoint()
 {
-   obstacles.push_back(Vector3d(rs.cartesianPosition(0), rs.cartesianPosition(1), rs.cartesianPosition(2)));
+   // find location
+   for(int i = 0; i < JOINT_NO; ++i) {
+      if(rs.collision & (1 << i)) {
+         obstacles.push_back(Vector3d(joints(0,i+1), joints(1,i+1), joints(2,i+1)));
+      }
+   }
+   // add ee position ?
+
+   //obstacles.push_back(Vector3d(rs.cartesianPosition(0), rs.cartesianPosition(1), rs.cartesianPosition(2)));
 }
 
 
