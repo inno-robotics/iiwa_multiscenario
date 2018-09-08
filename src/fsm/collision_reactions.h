@@ -127,6 +127,7 @@ public:
    void reset() {}
 
 private:
+
    double velocity;
    double rest;
 

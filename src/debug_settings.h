@@ -5,7 +5,7 @@
 // which could be controlled using these macros
 
 // Work without connection, "emulate" movement
-#define EMULATE_MOVEMENT
+//#define EMULATE_MOVEMENT
 // Print current event
 #define SHOW_EVENTS
 // Print states on change

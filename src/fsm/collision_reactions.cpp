@@ -7,6 +7,7 @@
 #define ELBOW_REACTION_SEC 1   // execution time for elbow reaction
 #define COMPLIANT_REACTION_SEC 0.5
 #define THRESHOLD_COMP_TORQUE 8 
+#define COMPL_MARGIN 0.3
 
 #define KSETA 0.1
 #define ETA   0.1
@@ -114,6 +115,16 @@ bool CompliantReaction::execute(ControlInterface& ci)
    Matrix<double,JOINT_NO,1> dq = rs.externalTorque;
    // filter noise
    iiwa14::substituteTorqueNoise(dq);
+
+   // emulate spring near the limits
+   for(int i = 0; i < JOINT_NO; ++i) {
+      if(rs.jointPosition(i) > iiwa14::qmax[i]-COMPL_MARGIN) {
+         dq(i) += 10*(1/rs.jointPosition(i) - 1/(iiwa14::qmax[i]-COMPL_MARGIN));
+      }
+      else if(rs.jointPosition(i) < iiwa14::qmin[i]+COMPL_MARGIN) {
+         dq(i) += 10*(1/rs.jointPosition(i) - 1/(iiwa14::qmin[i]+COMPL_MARGIN));
+      }
+   }
    
    // all forces
    // find deflection

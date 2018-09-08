@@ -23,7 +23,7 @@ double iiwa14::qmin[] = {-RAD(170-GAP),-RAD(120-GAP),-RAD(170-GAP),-RAD(120-GAP)
 // velocity range
 double iiwa14::vmax[] = {RAD(85-VGAP),RAD(85-VGAP),RAD(100-VGAP),RAD(75-VGAP),RAD(130-VGAP),RAD(135-VGAP),RAD(135-VGAP)};
 // external torque thresholds (approximation)
-double iiwa14::noise[] = {2.5, 2.5, 2.5, 2.5, 1, 1, 1};
+double iiwa14::noise[] = {2.5, 4, 1.5, 3.5, 1.5, 1.5, 1};
 
 Matrix<double,JOINT_NO,1> iiwa14::zero_null_space = Matrix<double,JOINT_NO,1>::Zero();
 // Represent product of 4 matrices
