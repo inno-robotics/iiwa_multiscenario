@@ -21,6 +21,7 @@ set(MAIN_SOURCES
     src/fsm/collision_reactions.cpp
     src/fsm/main_task.cpp
     src/fsm/task_dispatcher.cpp
+    src/fsm/torque_particle_filter.cpp
 )
 
 # check basic reactions

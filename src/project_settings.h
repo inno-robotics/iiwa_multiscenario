@@ -11,10 +11,19 @@
 #define POSE_QUATERN 7     // ROS parameters for joint space
 
 // link length
-#define LINK01 360
-#define LINK23 420
-#define LINK45 400
-#define LINK67 126
+#define LINK_0 200         // base
+#define LINK_1 160
+#define LINK_2 200
+#define LINK_3 220
+#define LINK_4 200
+#define LINK_5 200
+#define LINK_6 80
+#define LINK_7 46
+//
+#define LINK01 360         // LINK_0 + LINK_1
+#define LINK23 420         // LINK_2 + LINK_3
+#define LINK45 400         // LINK_4 + LINK_5
+#define LINK67 126         // LINK_6 + LINK_7
 
 // gap between real and program limits
 #define GAP  5             // position
