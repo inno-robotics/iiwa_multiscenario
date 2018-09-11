@@ -5,9 +5,6 @@
 
 //#include <iostream>
 
-
-#define SEP    ","
-
 using namespace Eigen;
 
 RosIiwaLink::RosIiwaLink(ros::NodeHandle& nh, std::ofstream *fJoints, std::ofstream *fForces)

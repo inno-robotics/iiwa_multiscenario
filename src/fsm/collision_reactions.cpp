@@ -3,14 +3,6 @@
 
 #include <iostream>
 
-#define CART_SQ_ERR   10       // position error in cartesian space
-#define ELBOW_REACTION_SEC 1   // execution time for elbow reaction
-#define COMPLIANT_REACTION_SEC 0.5
-#define THRESHOLD_COMP_TORQUE 8 
-#define COMPL_MARGIN 0.3
-
-#define KSETA 0.1
-#define ETA   0.1
 
 using namespace Eigen;
 

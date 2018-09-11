@@ -8,9 +8,6 @@
 
 #include "control_interface.h"
 
-#define JOINT_SQ_ERR  0.0001
-#define CART_SQ_ERR   10
-
 class RobotStrategie;
 
 enum RobotEvent {

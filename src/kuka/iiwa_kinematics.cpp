@@ -5,16 +5,6 @@
 // temporary
 #include <iostream>
 
-#define LINK01 360
-#define LINK23 420
-#define LINK45 400
-#define LINK67 126
-
-#define GAP  5     // program limit for position
-#define VGAP 3     // program limit for velocity
-
-#define STATE_CORRECTION_COEFF 0.1
-
 using namespace Eigen;
 
 // angle range

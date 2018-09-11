@@ -3,11 +3,10 @@
 #include "collision_detection.h"
 #include "../kuka/iiwa_kinematics.h"
 #include "../debug_settings.h"
+#include "../project_settings.h"
 
 // temporary
 #include <iostream>
-
-#define VIRTUAL_OBSTACLE_FORCE 0.8
 
 using namespace Eigen;
 

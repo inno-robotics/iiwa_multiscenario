@@ -4,17 +4,7 @@
 #include <eigen3/Eigen/Dense>
 #include <string>
 
-#ifndef JOINT_NO
-#define JOINT_NO 7
-#endif
-
-#ifndef CART_NO
-#define CART_NO 6
-#endif
-
-#ifndef POSE_QUATERN
-#define POSE_QUATERN 7
-#endif
+#include "../project_settings.h"
 
 struct RobotState {
    Eigen::Matrix<double,JOINT_NO,1> jointPosition;

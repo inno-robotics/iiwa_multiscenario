@@ -15,10 +15,6 @@
 // tmp
 #include "kuka/iiwa_kinematics.h"
 
-#ifndef PI
-#define PI 3.14159265358979323846
-#endif
-
 // save to file
 //#define LOG_JOINT "joints.csv"
 //#define LOG_TORQUE "torque.csv"

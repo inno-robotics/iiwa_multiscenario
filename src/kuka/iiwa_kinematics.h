@@ -2,16 +2,7 @@
 #define IIWA_KINEMATICS
 
 #include "../kinematics/homogenous.h"
-
-#ifndef JOINT_NO
-#define JOINT_NO 7
-#endif
-#ifndef CART_NO
-#define CART_NO 6
-#endif
-#ifndef POSE_QUATERN
-#define POSE_QUATERN 7
-#endif
+#include "../project_settings.h"
 
 namespace iiwa14 {
 
