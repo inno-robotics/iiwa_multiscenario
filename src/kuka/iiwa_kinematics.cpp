@@ -287,21 +287,21 @@ Matrix<double,JOINT_NO+1,3> iiwa14::jointCoordinate(Matrix<double,JOINT_NO,1>& q
    m *= iiwa14::RyRzTz(q(5),q(6),LINK67);
    res(7,0) = m(0,3); res(7,1) = m(1,3); res(7,2) = m(2,3);
 
-   res(0,0) = 0.5*(res(1,0));
-   res(0,1) = 0.5*(res(1,1));
-   res(0,2) = 0.5*(res(1,2));
+   res(0,0) = (double(LINK_0)/LINK01)*(res(1,0));
+   res(0,1) = (double(LINK_0)/LINK01)*(res(1,1));
+   res(0,2) = (double(LINK_0)/LINK01)*(res(1,2));
 
-   res(2,0) = 0.5*(res(3,0)+res(1,0));
-   res(2,1) = 0.5*(res(3,1)+res(1,1));
-   res(2,2) = 0.5*(res(3,2)+res(1,2));
+   res(2,0) = (LINK_2*res(3,0)+LINK_3*res(1,0))/LINK23;
+   res(2,1) = (LINK_2*res(3,1)+LINK_3*res(1,1))/LINK23;
+   res(2,2) = (LINK_2*res(3,2)+LINK_3*res(1,2))/LINK23;
 
-   res(4,0) = 0.5*(res(5,0)+res(3,0));
-   res(4,1) = 0.5*(res(5,1)+res(3,1));
-   res(4,2) = 0.5*(res(5,2)+res(3,2));
+   res(4,0) = (LINK_4*res(5,0)+LINK_5*res(3,0))/LINK45;
+   res(4,1) = (LINK_4*res(5,1)+LINK_5*res(3,1))/LINK45;
+   res(4,2) = (LINK_4*res(5,2)+LINK_5*res(3,2))/LINK45;
 
-   res(6,0) = 0.5*(res(7,0)+res(5,0));
-   res(6,1) = 0.5*(res(7,1)+res(5,1));
-   res(6,2) = 0.5*(res(7,2)+res(5,2));
+   res(6,0) = (LINK_6*res(7,0)+LINK_7*res(5,0))/LINK67;
+   res(6,1) = (LINK_6*res(7,1)+LINK_7*res(5,1))/LINK67;
+   res(6,2) = (LINK_6*res(7,2)+LINK_7*res(5,2))/LINK67;
    
    return res;
 }

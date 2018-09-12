@@ -28,3 +28,8 @@ set(MAIN_SOURCES
 add_executable(basic_reactions src/basic_reactions.cpp ${MAIN_SOURCES})
 add_dependencies(basic_reactions iiwa_msgs_generate_messages_cpp)
 target_link_libraries(basic_reactions ${catkin_LIBRARIES})
+
+# test particle filter
+add_executable(test_particles src/test_particles.cpp ${MAIN_SOURCES})
+add_dependencies(test_particles iiwa_msgs_generate_messages_cpp)
+target_link_libraries(test_particles ${catkin_LIBRARIES})

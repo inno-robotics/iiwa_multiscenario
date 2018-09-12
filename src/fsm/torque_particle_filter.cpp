@@ -4,6 +4,8 @@
 #include "torque_particle_filter.h"
 #include "../kinematics/homogenous.h"
 
+#include <iostream>
+
 
 using namespace Eigen;
 using namespace std;
@@ -33,36 +35,43 @@ void TorqueParticleFilter::prepareForJacobian(Matrix<double,JOINT_NO,1>& q)
 {
    // joint 0
    rotations[0] *= homo::Rz(q(0));   
+   //std::cout << positions[0] << std::endl << std::endl;
    // joint 1
    rotations[1] = rotations[0] * homo::Tz(LINK_1);
-   positions[1] = rotations[0].block(0,3,3,4);
-   orientations[1] = rotations[0].block(0,1,3,2);  // y
+   positions[1] = rotations[1].block(0,3, 3,1);
+   orientations[1] = rotations[1].block(0,1, 3,1);  // y
    rotations[1] *= homo::Ry(q(1));
+   //std::cout << positions[1] << std::endl << std::endl;
    // joint 2
    rotations[2] = rotations[1] * homo::Tz(LINK_2);
-   positions[2] = rotations[1].block(0,3,3,4);
-   orientations[2] = rotations[1].block(0,2,3,3);  // z
-   rotations[2] *= homo::Ry(q(2));
+   positions[2] = rotations[2].block(0,3, 3,1);
+   orientations[2] = rotations[2].block(0,2, 3,1);  // z
+   rotations[2] *= homo::Rz(q(2)+PI);
+   //std::cout << positions[2] << std::endl << std::endl;
    // joint 3
    rotations[3] = rotations[2] * homo::Tz(LINK_3);
-   positions[3] = rotations[2].block(0,3,3,4);
-   orientations[3] = rotations[2].block(0,1,3,2);  // y
+   positions[3] = rotations[3].block(0,3, 3,1);
+   orientations[3] = rotations[3].block(0,1, 3,1);  // y
    rotations[3] *= homo::Ry(q(3));
+   //std::cout << positions[3] << std::endl << std::endl;
    // joint 4
    rotations[4] = rotations[3] * homo::Tz(LINK_4);
-   positions[4] = rotations[3].block(0,3,3,4);
-   orientations[4] = rotations[3].block(0,2,3,3);  // z
-   rotations[4] *= homo::Ry(q(4));
+   positions[4] = rotations[4].block(0,3, 3,1);
+   orientations[4] = rotations[4].block(0,2, 3,1);  // z
+   rotations[4] *= homo::Rz(q(4)-PI);
+   //std::cout << positions[4] << std::endl << std::endl;
    // joint 5
    rotations[5] = rotations[4] * homo::Tz(LINK_5);
-   positions[5] = rotations[4].block(0,3,3,4);
-   orientations[5] = rotations[4].block(0,1,3,2);  // y
-   rotations[5] *= homo::Ry(q(4));
+   positions[5] = rotations[5].block(0,3, 3,1);
+   orientations[5] = rotations[5].block(0,1, 3,1);  // y
+   rotations[5] *= homo::Ry(q(5));
+   //std::cout << positions[5] << std::endl << std::endl;
    // joint 6
    rotations[6] = rotations[5] * homo::Tz(LINK_6);
-   positions[6] = rotations[5].block(0,3,3,4);
-   orientations[6] = rotations[5].block(0,2,3,3);  // z
-   rotations[6] *= homo::Ry(q(7));
+   positions[6] = rotations[6].block(0,3, 3,1);
+   orientations[6] = rotations[6].block(0,2, 3,1);  // z
+   rotations[6] *= homo::Rz(q(6));
+   //std::cout << positions[6] << std::endl << std::endl;
    
 }
 
@@ -118,9 +127,7 @@ void TorqueParticleFilter::resampling()
    pp.resize(particles.size());
    double max = 0; // probability
    for(int i = 0; i < particles.size(); ++i) {
-      // copy
-      pp[i].pose = particles[i].pose;
-      pp[i].p    = particles[i].p;
+      pp[i] = particles[i];
       if(particles[i].p > max) max = particles[i].p;
    }
    // start
@@ -133,8 +140,7 @@ void TorqueParticleFilter::resampling()
 	 index = (index+1) % pp.size();
       }
       // save
-      particles[k].pose = pp[index].pose;
-      particles[k].p    = pp[index].p;
+      particles[k] = pp[index];
    }
 }
 
@@ -145,8 +151,9 @@ Matrix<double,CART_NO,JOINT_NO> TorqueParticleFilter::findJacobian(double len)
    int J = getJointNo(len);
    if(J == -1) return res;
    len = lenRest(len, J);    // update length
+   std::cout << "J " << J << " len " << len  << std::endl;
 
-   Vector3d point = Vector3d(len*rotations[J](0,2)+rotations[J](0,3), len*rotations[J](1,2)+rotations[J](1,3), len*rotations[J](2,2)+rotations[J](2,3));
+   Vector3d point = Vector3d(len*rotations[J](0,2)+rotations[J](0,3), len*rotations[J](1,2)+rotations[J](1,3), len*rotations[J](2,2)+rotations[J](2,3)); // s
    Vector3d product;
 
    for(int i = 0; i < J+1; ++i) {
