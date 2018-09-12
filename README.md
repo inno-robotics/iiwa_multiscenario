@@ -1,7 +1,7 @@
 # iiwa_multiscenario
 Framework for experiments with kuka iiwa collision reactions. The program provides an interface for development of simple robot reactions and combining them in form of finite state machine. 
 
-Each reaction should be inherited from the _RobotStrategie_ class. It also should redefine the follosing methods:
+Each reaction should be inherited from the _RobotStrategie_ class. It also should redefine the following methods:
 * _execute(ControlInterface& )_ - robot movement during the reaction
 * _isFinish()_ - check if the state can be changed
 * _reset()_ - change internal object parameters if need
