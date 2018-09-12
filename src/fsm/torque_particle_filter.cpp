@@ -1,11 +1,16 @@
 #include <cstdlib>
 #include <ctime>
+#include <cmath>
 
 #include "torque_particle_filter.h"
 #include "../kinematics/homogenous.h"
 
 #include <iostream>
 
+#define PARTICLE_DISTANCE 10.0    // mm
+#define PARTICLE_ANGLE    0.1     // rad
+
+#define URAND ((rand() % 10000) / 10000.0)
 
 using namespace Eigen;
 using namespace std;
@@ -21,6 +26,51 @@ TorqueParticleFilter::TorqueParticleFilter(int N)
    orientations[0] = Vector3d(0,0,1);   
 }
 
+TorqueParticle TorqueParticleFilter::nextCircle(Matrix<double,JOINT_NO,1>& tau)
+{
+   Vector3d vec;
+   Matrix<double,4,4> prod;
+   Matrix<double,JOINT_NO,1> torque = tau, found;
+   torque.normalize();
+
+   // move and update weights 
+   for(vector<TorqueParticle>::iterator it = particles.begin(); it != particles.end(); it++) { 
+
+      it->move(); 
+
+      int J = getJointNo(it->pose);
+      if(J == -1) {
+         it->p = 0;
+      } else {
+         prod = rotations[J] * homo::Rz(it->alpha) * homo::Ry(it->beta);    // force direction
+	 found = findJacobian(it->pose).transpose() * prod.block(0,0, 3,1);
+	 found.normalize();
+         it->p = exp(-(found-torque).squaredNorm());
+      }
+   }
+
+   normalization();
+   // change particle set
+   resampling();
+
+   // estimate result
+   return estimation();
+
+}
+
+TorqueParticle TorqueParticleFilter::estimation()
+{
+   TorqueParticle tp;
+
+   for(vector<TorqueParticle>::iterator it = particles.begin(); it != particles.end(); it++) { 
+      tp.pose += it->p * it->pose;
+      tp.alpha += it->p * it->alpha;
+      tp.beta += it->p * it->beta;
+   }
+
+   return tp;
+}
+
 void TorqueParticleFilter::initializeNewParticles()
 {
    int len = LINK01 + LINK23 + LINK45 + LINK67;
@@ -28,6 +78,11 @@ void TorqueParticleFilter::initializeNewParticles()
       it->pose = rand() % len;
       while(it->pose < LINK_0) { it->pose = rand() % len; } // exclude base
       it->p = 1.0/double(particles.size()); 
+
+      it->alpha = URAND * 2 * PI;
+      it->beta = (2*URAND - 1) * PI;
+
+      //std::cout << it->pose << " " << it->alpha << " " << it->beta << " " << it->p << endl;
    }
 }
 
@@ -35,43 +90,36 @@ void TorqueParticleFilter::prepareForJacobian(Matrix<double,JOINT_NO,1>& q)
 {
    // joint 0
    rotations[0] *= homo::Rz(q(0));   
-   //std::cout << positions[0] << std::endl << std::endl;
    // joint 1
    rotations[1] = rotations[0] * homo::Tz(LINK_1);
    positions[1] = rotations[1].block(0,3, 3,1);
    orientations[1] = rotations[1].block(0,1, 3,1);  // y
    rotations[1] *= homo::Ry(q(1));
-   //std::cout << positions[1] << std::endl << std::endl;
    // joint 2
    rotations[2] = rotations[1] * homo::Tz(LINK_2);
    positions[2] = rotations[2].block(0,3, 3,1);
    orientations[2] = rotations[2].block(0,2, 3,1);  // z
    rotations[2] *= homo::Rz(q(2)+PI);
-   //std::cout << positions[2] << std::endl << std::endl;
    // joint 3
    rotations[3] = rotations[2] * homo::Tz(LINK_3);
    positions[3] = rotations[3].block(0,3, 3,1);
    orientations[3] = rotations[3].block(0,1, 3,1);  // y
    rotations[3] *= homo::Ry(q(3));
-   //std::cout << positions[3] << std::endl << std::endl;
    // joint 4
    rotations[4] = rotations[3] * homo::Tz(LINK_4);
    positions[4] = rotations[4].block(0,3, 3,1);
    orientations[4] = rotations[4].block(0,2, 3,1);  // z
    rotations[4] *= homo::Rz(q(4)-PI);
-   //std::cout << positions[4] << std::endl << std::endl;
    // joint 5
    rotations[5] = rotations[4] * homo::Tz(LINK_5);
    positions[5] = rotations[5].block(0,3, 3,1);
    orientations[5] = rotations[5].block(0,1, 3,1);  // y
    rotations[5] *= homo::Ry(q(5));
-   //std::cout << positions[5] << std::endl << std::endl;
    // joint 6
    rotations[6] = rotations[5] * homo::Tz(LINK_6);
    positions[6] = rotations[6].block(0,3, 3,1);
    orientations[6] = rotations[6].block(0,2, 3,1);  // z
    rotations[6] *= homo::Rz(q(6));
-   //std::cout << positions[6] << std::endl << std::endl;
    
 }
 
@@ -134,7 +182,7 @@ void TorqueParticleFilter::resampling()
    int index = rand() % particles.size();
    double beta = 0;
    for(int k = 0; k < pp.size(); ++k) {
-      beta += (rand() % 1000) / 1000.0 * 2 * max;
+      beta += URAND * 2 * max;
       while(beta > pp[index].p) {
          beta -= pp[index].p;
 	 index = (index+1) % pp.size();
@@ -142,16 +190,17 @@ void TorqueParticleFilter::resampling()
       // save
       particles[k] = pp[index];
    }
+   normalization();
 }
 
-Matrix<double,CART_NO,JOINT_NO> TorqueParticleFilter::findJacobian(double len)
+Matrix<double,3,JOINT_NO> TorqueParticleFilter::findJacobian(double len)
 {
-   Matrix<double,CART_NO,JOINT_NO> res = Matrix<double,CART_NO,JOINT_NO>::Zero();
+   Matrix<double,3,JOINT_NO> res = Matrix<double,3,JOINT_NO>::Zero();
 
    int J = getJointNo(len);
    if(J == -1) return res;
    len = lenRest(len, J);    // update length
-   std::cout << "J " << J << " len " << len  << std::endl;
+   //std::cout << "J " << J << " len " << len  << std::endl;
 
    Vector3d point = Vector3d(len*rotations[J](0,2)+rotations[J](0,3), len*rotations[J](1,2)+rotations[J](1,3), len*rotations[J](2,2)+rotations[J](2,3)); // s
    Vector3d product;
@@ -159,8 +208,32 @@ Matrix<double,CART_NO,JOINT_NO> TorqueParticleFilter::findJacobian(double len)
    for(int i = 0; i < J+1; ++i) {
       product = orientations[i].cross(point-positions[i]);
       res(0,i) = product(0); res(1,i) = product(1); res(2,i) = product(2);
-      res(3,i) = orientations[i](0); res(4,i) = orientations[i](1); res(5,i) = orientations[i](2);
+      //res(3,i) = orientations[i](0); res(4,i) = orientations[i](1); res(5,i) = orientations[i](2);
    }
    
    return res;
+}
+
+//
+// TorqueParticle
+//
+
+TorqueParticle& TorqueParticle::operator= (const TorqueParticle& other) 
+{
+   if(this != &other) { 
+      this->pose = other.pose; 
+      this->p = other.p; 
+      this->alpha = other.alpha;
+      this->beta = other.beta;
+   }
+   return *this;
+} 
+
+void TorqueParticle::move()
+{
+   this->pose += (2*URAND - 1) * PARTICLE_DISTANCE;
+   this->alpha += (2*URAND -1) * PARTICLE_ANGLE;
+   this->beta += (2*URAND - 1) * PARTICLE_ANGLE;
+
+   std::cout << this->pose << " " << this->alpha << " " << this-> beta << std::endl;
 }
