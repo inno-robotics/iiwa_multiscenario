@@ -66,13 +66,14 @@ int main(int argc, char **argv)
    Eigen::Matrix<double,JOINT_NO,1> q;
    for(int i = 0; i < JOINT_NO; i++) { q(i) = i*0.1; }
 
-   TorqueParticleFilter filter(5);
+   TorqueParticleFilter filter(50);
    filter.prepareForJacobian(q);
    //std::cout << filter.findJacobian(LINK01+LINK23+LINK45+LINK67) << std::endl;
    //std::cout << iiwa14::Jacobian(q) << std::endl;
 
    double len = LINK01+LINK23+LINK45*0.8;
    Eigen::Matrix<double,4,4> rot = filter.rotations[4] * homo::Rz(0.1) * homo::Ry(-0.2);
+   std::cout << "Pose: " << len << " 0.1 -0.2" << std::endl;
    
    // define torque
    Eigen::Matrix<double,JOINT_NO,1> tau = filter.findJacobian(len).transpose() * rot.block(0,0, 3,1);
@@ -81,8 +82,10 @@ int main(int argc, char **argv)
    TorqueParticle tp;
    filter.initializeNewParticles();
 
-   tp = filter.nextCircle(tau);
-   std::cout << "pose " << tp.pose << " aplha " << tp.alpha << " beta " << tp.beta << std::endl;
+   for(int i = 0; i < 30; i++) {
+      tp = filter.nextCircle(tau);
+      std::cout << i << " pose " << tp.pose << " aplha " << tp.alpha << " beta " << tp.beta << std::endl;
+   }
    
    // stoping
    ROS_INFO("Bye!");

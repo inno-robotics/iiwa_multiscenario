@@ -7,8 +7,8 @@
 
 #include <iostream>
 
-#define PARTICLE_DISTANCE 10.0    // mm
-#define PARTICLE_ANGLE    0.1     // rad
+#define PARTICLE_DISTANCE 20.0    // mm
+#define PARTICLE_ANGLE    0.2     // rad
 
 #define URAND ((rand() % 10000) / 10000.0)
 
@@ -31,7 +31,9 @@ TorqueParticle TorqueParticleFilter::nextCircle(Matrix<double,JOINT_NO,1>& tau)
    Vector3d vec;
    Matrix<double,4,4> prod;
    Matrix<double,JOINT_NO,1> torque = tau, found;
-   torque.normalize();
+   double nTorque = torque.norm();
+   if(nTorque > 0) torque /= nTorque;
+   //std::cout << torque << std::endl << std::endl;
 
    // move and update weights 
    for(vector<TorqueParticle>::iterator it = particles.begin(); it != particles.end(); it++) { 
@@ -44,8 +46,11 @@ TorqueParticle TorqueParticleFilter::nextCircle(Matrix<double,JOINT_NO,1>& tau)
       } else {
          prod = rotations[J] * homo::Rz(it->alpha) * homo::Ry(it->beta);    // force direction
 	 found = findJacobian(it->pose).transpose() * prod.block(0,0, 3,1);
-	 found.normalize();
+	 //std::cout << found << std::endl << std::endl;
+	 double nFound = found.norm();
+	 if(nFound > 0) found /= nFound;
          it->p = exp(-(found-torque).squaredNorm());
+	 //std::cout << (found-torque).squaredNorm() << " " << it->p << std::endl;
       }
    }
 
@@ -231,9 +236,11 @@ TorqueParticle& TorqueParticle::operator= (const TorqueParticle& other)
 
 void TorqueParticle::move()
 {
+   //std::cout << this->pose << " " << this->alpha << " " << this-> beta << std::endl;
+
    this->pose += (2*URAND - 1) * PARTICLE_DISTANCE;
    this->alpha += (2*URAND -1) * PARTICLE_ANGLE;
    this->beta += (2*URAND - 1) * PARTICLE_ANGLE;
 
-   std::cout << this->pose << " " << this->alpha << " " << this-> beta << std::endl;
+   //std::cout << this->pose << " " << this->alpha << " " << this-> beta << std::endl << std::endl;
 }
