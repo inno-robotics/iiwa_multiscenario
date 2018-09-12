@@ -21,6 +21,14 @@ struct TorqueParticle {
 
 
 class TorqueParticleFilter {
+/*
+struct pred {
+   bool operator()(TorqueParticle const& a, TorqueParticle const& b){
+      return a.pose < b.pose;
+   }
+};
+*/
+
 public:
    TorqueParticleFilter(int N=100);
    void initializeNewParticles();
@@ -31,12 +39,16 @@ public:
    Eigen::Matrix<double,3,JOINT_NO> findJacobian(double len);
    void prepareForJacobian(Eigen::Matrix<double,JOINT_NO,1>& q);
    Eigen::Matrix<double,4,4> rotations[JOINT_NO];
+   void sorting() { std::sort(particles.begin(), particles.end(), less); }
+   void show();
+   void resampling();
 
 private:
    int  getJointNo(double x);
    void normalization();
-   void resampling();
+   
    double lenRest(double x, int pos);
+   static bool less(TorqueParticle const& a, TorqueParticle const& b) { return a.pose < b.pose; }
 
    std::vector<TorqueParticle> particles;
    Eigen::Vector3d positions[JOINT_NO];

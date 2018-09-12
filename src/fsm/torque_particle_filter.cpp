@@ -50,14 +50,13 @@ TorqueParticle TorqueParticleFilter::nextCircle(Matrix<double,JOINT_NO,1>& tau)
 	 double nFound = found.norm();
 	 if(nFound > 0) found /= nFound;
          it->p = exp(-(found-torque).squaredNorm());
-	 //std::cout << (found-torque).squaredNorm() << " " << it->p << std::endl;
+	 //std::cout << (found-torque).norm() << " " << it->p << std::endl;
+	 //std::cout << it->pose << " " << it->alpha << " " << it->beta << " " << it->p << std::endl;
       }
    }
 
    normalization();
-   // change particle set
-   resampling();
-
+   
    // estimate result
    return estimation();
 
@@ -183,17 +182,20 @@ void TorqueParticleFilter::resampling()
       pp[i] = particles[i];
       if(particles[i].p > max) max = particles[i].p;
    }
+   //std::cout << "max " << max << std::endl;
    // start
    int index = rand() % particles.size();
    double beta = 0;
+   max *= 2;
    for(int k = 0; k < pp.size(); ++k) {
-      beta += URAND * 2 * max;
+      beta += URAND * max;
       while(beta > pp[index].p) {
          beta -= pp[index].p;
 	 index = (index+1) % pp.size();
       }
       // save
       particles[k] = pp[index];
+      //std::cout << pp[index].p << std::endl;
    }
    normalization();
 }
@@ -217,6 +219,14 @@ Matrix<double,3,JOINT_NO> TorqueParticleFilter::findJacobian(double len)
    }
    
    return res;
+}
+
+void TorqueParticleFilter::show()
+{
+   sorting();
+   for(vector<TorqueParticle>::iterator it = particles.begin(); it != particles.end(); it++) {
+      std::cout << it->pose << " " << it->p << std::endl;
+   }
 }
 
 //
