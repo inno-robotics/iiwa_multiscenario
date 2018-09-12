@@ -20,6 +20,12 @@ public:
 
 private:
    void prepareForJacobian(Eigen::Matrix<double,JOINT_NO,1>& q);
+   int  getJointNo(double x);
+   void initializeNewParticles();
+   void normalization();
+   void resampling();
+   double lenRest(double x, int pos);
+   Eigen::Matrix<double,CART_NO,JOINT_NO> findJacobian(double len);
 
    std::vector<TorqueParticle> particles;
    Eigen::Matrix<double,4,4> rotations[JOINT_NO];

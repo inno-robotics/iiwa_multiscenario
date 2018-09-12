@@ -1,18 +1,32 @@
+#include <cstdlib>
+#include <ctime>
+
 #include "torque_particle_filter.h"
 #include "../kinematics/homogenous.h"
 
+
 using namespace Eigen;
+using namespace std;
 
 TorqueParticleFilter::TorqueParticleFilter(int N)	
 {
-   particleNo = N;
-   // initialize
+   srand(time(NULL));
+
    particles.resize(N);
-   for(int i = 0; i < N; ++i) { particles[i].p = 1.0/double(N); }
    
    rotations[0] = homo::Tz(LINK_0);
    positions[0]    = Vector3d(0,0,LINK_0);
    orientations[0] = Vector3d(0,0,1);   
+}
+
+void TorqueParticleFilter::initializeNewParticles()
+{
+   int len = LINK01 + LINK23 + LINK45 + LINK67;
+   for(vector<TorqueParticle>::iterator it = particles.begin(); it != particles.end(); it++) {
+      it->pose = rand() % len;
+      while(it->pose < LINK_0) { it->pose = rand() % len; } // exclude base
+      it->p = 1.0/double(particles.size()); 
+   }
 }
 
 void TorqueParticleFilter::prepareForJacobian(Matrix<double,JOINT_NO,1>& q)
@@ -50,4 +64,96 @@ void TorqueParticleFilter::prepareForJacobian(Matrix<double,JOINT_NO,1>& q)
    orientations[6] = rotations[5].block(0,2,3,3);  // z
    rotations[6] *= homo::Ry(q(7));
    
+}
+
+int TorqueParticleFilter::getJointNo(double x)
+{
+   if(x < (LINK01+LINK23)) {
+      if(x < LINK01) {
+         return x < LINK_0 ? -1 : 0;
+      } else {
+         return x < (LINK01+LINK_2) ? 1 : 2;
+      }
+   } else {
+      if(x < (LINK01+LINK23+LINK45)) {
+         return x < (LINK01+LINK23+LINK_4) ? 3 : 4;
+      } else {
+         return x < (LINK01+LINK23+LINK45+LINK_6) ? 5 : 6;
+      }
+   }
+   return -1;
+}
+
+double TorqueParticleFilter::lenRest(double x, int pos)
+{
+   switch(pos) {
+   case 0: return x - LINK_0;
+   case 1: return x - LINK01;
+   case 2: return x - LINK01 - LINK_2;
+   case 3: return x - LINK01 - LINK23;
+   case 4: return x - LINK01 - LINK23 - LINK_4;
+   case 5: return x - LINK01 - LINK23 - LINK45;
+   case 6: return x - LINK01 - LINK23 - LINK45 - LINK_6;
+   }
+   return x;
+}
+
+void TorqueParticleFilter::normalization()
+{
+   // sum of elements
+   double sum = 0;
+   for(vector<TorqueParticle>::iterator it = particles.begin(); it != particles.end(); it++) {
+      sum += it->p;
+   }
+
+   for(vector<TorqueParticle>::iterator it = particles.begin(); it != particles.end(); it++) {
+      it->p /= sum;
+   }
+}
+
+void TorqueParticleFilter::resampling()
+{
+   // copy of particles
+   vector<TorqueParticle> pp;
+   pp.resize(particles.size());
+   double max = 0; // probability
+   for(int i = 0; i < particles.size(); ++i) {
+      // copy
+      pp[i].pose = particles[i].pose;
+      pp[i].p    = particles[i].p;
+      if(particles[i].p > max) max = particles[i].p;
+   }
+   // start
+   int index = rand() % particles.size();
+   double beta = 0;
+   for(int k = 0; k < pp.size(); ++k) {
+      beta += (rand() % 1000) / 1000.0 * 2 * max;
+      while(beta > pp[index].p) {
+         beta -= pp[index].p;
+	 index = (index+1) % pp.size();
+      }
+      // save
+      particles[k].pose = pp[index].pose;
+      particles[k].p    = pp[index].p;
+   }
+}
+
+Matrix<double,CART_NO,JOINT_NO> TorqueParticleFilter::findJacobian(double len)
+{
+   Matrix<double,CART_NO,JOINT_NO> res = Matrix<double,CART_NO,JOINT_NO>::Zero();
+
+   int J = getJointNo(len);
+   if(J == -1) return res;
+   len = lenRest(len, J);    // update length
+
+   Vector3d point = Vector3d(len*rotations[J](0,2)+rotations[J](0,3), len*rotations[J](1,2)+rotations[J](1,3), len*rotations[J](2,2)+rotations[J](2,3));
+   Vector3d product;
+
+   for(int i = 0; i < J+1; ++i) {
+      product = orientations[i].cross(point-positions[i]);
+      res(0,i) = product(0); res(1,i) = product(1); res(2,i) = product(2);
+      res(3,i) = orientations[i](0); res(4,i) = orientations[i](1); res(5,i) = orientations[i](2);
+   }
+   
+   return res;
 }
